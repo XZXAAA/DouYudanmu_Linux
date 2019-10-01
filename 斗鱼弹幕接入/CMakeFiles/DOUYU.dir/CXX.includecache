@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/xzx/Linux_王保明/斗鱼弹幕接入/DOUYU.cpp
+douyuAPI.h
+/home/xzx/Linux_王保明/斗鱼弹幕接入/douyuAPI.h
+stdio.h
+/home/xzx/Linux_王保明/斗鱼弹幕接入/stdio.h
+pthread.h
+-
+unistd.h
+-
+sys/time.h
+-
+data.h
+/home/xzx/Linux_王保明/斗鱼弹幕接入/data.h
+algorithm
+-
+netdb.h
+-
+netinet/in.h
+-
+arpa/inet.h
+-
+
+include/data.h
+iostream
+-
+string
+-
+vector
+-
+
+include/douyuAPI.h
+data.h
+include/data.h
+
