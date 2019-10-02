@@ -6,27 +6,33 @@
 
 #IncludeRegexTransform: 
 
-/home/xzx/Linux_王保明/斗鱼弹幕接入/DOUYU.cpp
+/home/xzx/Linux_王保明/斗鱼弹幕接入/src/douyuAPI.cpp
 douyuAPI.h
-/home/xzx/Linux_王保明/斗鱼弹幕接入/douyuAPI.h
+/home/xzx/Linux_王保明/斗鱼弹幕接入/src/douyuAPI.h
+stdlib.h
+-
 stdio.h
-/home/xzx/Linux_王保明/斗鱼弹幕接入/stdio.h
-pthread.h
 -
 unistd.h
 -
+fcntl.h
+-
 sys/time.h
 -
-data.h
-/home/xzx/Linux_王保明/斗鱼弹幕接入/data.h
-algorithm
+sys/types.h
 -
-netdb.h
+unistd.h
 -
-netinet/in.h
+sys/socket.h
 -
 arpa/inet.h
 -
+errno.h
+-
+string.h
+-
+data.h
+/home/xzx/Linux_王保明/斗鱼弹幕接入/src/data.h
 
 include/data.h
 iostream

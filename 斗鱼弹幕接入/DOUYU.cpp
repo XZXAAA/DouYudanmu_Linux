@@ -59,7 +59,7 @@ int main(int argc, char * argv[])
     }
    int room_id = atoi(argv[1]);
 
-    ret = douyusockt_init(&handle,2,2,2);
+    ret = douyusockt_init(&handle,2,2,4);
     if(ret !=0)
     {
         printf("douyusockt_init err ret %d \n",ret);
@@ -68,7 +68,7 @@ int main(int argc, char * argv[])
      struct hostent * host = gethostbyname("openbarrage.douyutv.com");
     //ret = connect_douyu(handle,"124.95.155.51",room_id);///接入服务器   ///通过ret == -1 和timeOUT可以判断超时
     ret = connect_douyu(handle,inet_ntoa(*(struct in_addr *)host->h_addr_list[0]),8601);//1126960
-    struct in_addr ad;
+    
     if(ret !=0)
     {
         printf("connect_douyu err ret %d \n",ret);
@@ -84,7 +84,7 @@ int main(int argc, char * argv[])
 	}
 
     ret = rev_data(handle,data,&type);
-    if(type = MSG_TYPE_LOGIN_RESPONSE)
+    if(type == MSG_TYPE_LOGIN_RESPONSE)
     {
         it =find_if(data.begin(),data.end(),findvalue("live_stat"));
             printf("直播间状态%s \n",(*it).value.c_str());
@@ -119,7 +119,8 @@ int main(int argc, char * argv[])
     while(1)
     {
         ret = rev_data(handle,data,&type);   //根据收到数据类型switch
-
+    if(ret==0)
+    {
         switch (type)
         {
         case MSG_TYPE_BARRAGE:
@@ -138,6 +139,7 @@ int main(int argc, char * argv[])
             break;
         }
         data.clear();
+    }
     }
 
 

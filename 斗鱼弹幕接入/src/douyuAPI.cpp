@@ -543,12 +543,19 @@ int rev_data(void*handle, vector<key_value>& data,DY_MESSAGE_TYPE *type )
 	unsigned char buf[1024];
     if(handle == NULL )
     {
-        ret = Sck_ErrParam;  ///超时
+        ret = Sck_ErrParam;  
         return ret;
     }
 	datalen = sizeof(buf);
 
-	rev_from_douyu(handle,buf,&datalen);
+	ret = rev_from_douyu(handle,buf,&datalen);
+	{
+		if(ret==Sck_ErrTimeOut)
+		{
+			printf("接收数据超时\n");
+			return -1;
+		}
+	}
 	encoder enc;
 	*type = enc.get_rev_type(buf,"type");
 
