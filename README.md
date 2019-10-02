@@ -24,3 +24,4 @@ $uname -v
 $gcc -v  
 $cmake -version  
 $make -v  
+![Image text](https://github.com/XZXAAA/DouYudanmu_Linux/blob/V0.1/%E6%96%97%E9%B1%BC%E5%BC%B9%E5%B9%95.jpg)
