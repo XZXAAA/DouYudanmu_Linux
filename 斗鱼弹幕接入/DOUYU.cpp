@@ -8,7 +8,9 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
+#include<iostream>
+#include<fstream>
+using namespace std;
 void * keep_heart (void *handle)
 {
     int ret =0;
@@ -50,7 +52,9 @@ int main(int argc, char * argv[])
     vector<key_value>::iterator it;
     vector<key_value>::iterator it2;
     DY_MESSAGE_TYPE type;
-
+    ofstream my_log("./my_log.txt",ios::app);
+    if(my_log.good()==0)
+        cout<<"打开日志文件失败"<<endl;
     if(argc != 2)
     {
         printf("usage err\n");
@@ -65,9 +69,10 @@ int main(int argc, char * argv[])
         printf("douyusockt_init err ret %d \n",ret);
         return -1;
     }
-     struct hostent * host = gethostbyname("openbarrage.douyutv.com");
+     struct hostent * host = gethostbyname("open.douyu.com");
     //ret = connect_douyu(handle,"124.95.155.51",room_id);///接入服务器   ///通过ret == -1 和timeOUT可以判断超时
-    ret = connect_douyu(handle,inet_ntoa(*(struct in_addr *)host->h_addr_list[0]),8601);//1126960
+    //ret = connect_douyu(handle,inet_ntoa(*(struct in_addr *)host->h_addr_list[0]),8601);//1126960
+    connect_douyu(handle,"124.95.155.51",8601); //288016
     
     if(ret !=0)
     {
@@ -76,7 +81,7 @@ int main(int argc, char * argv[])
     }
 
    
-    ret = login_room(handle);
+    ret = login_room(handle,room_id);
 	if(0 != ret)
 	{
          printf("login_room err ret %d \n",ret);
@@ -127,7 +132,12 @@ int main(int argc, char * argv[])
             /* code */
             it =find_if(data.begin(),data.end(),findvalue("txt"));
            it2 =find_if(data.begin(),data.end(),findvalue("nn"));
-            printf(" %s :\t\t%s \n",(*it2).value.c_str(),(*it).value.c_str());
+           if(it!=data.end()&&it2!=data.end())
+           {
+                printf(" %s :\t\t%s \r\n",(*it2).value.c_str(),(*it).value.c_str());
+                my_log<<(*it2).value.c_str()<<": "<<(*it).value.c_str()<<endl;
+                
+           }
             break;
         
         case MSG_TYPE_LOGIN_RESPONSE:
@@ -135,7 +145,12 @@ int main(int argc, char * argv[])
             printf("%s \n",(*it).value.c_str());
 
         break;
+        case UNKONW_TYPE:  ////不明包
+            cout<<"不明包出现"<<endl;
+
+        break;
         default:
+            printf("unkonw type\r\n");
             break;
         }
         data.clear();
@@ -150,6 +165,8 @@ int main(int argc, char * argv[])
         printf("pthread_join err ret %d \n",ret);
         return -1;
     }
+    my_log.close();
+     douyusockt_destroy(handle);//堆释放
     return 0;
 
 }

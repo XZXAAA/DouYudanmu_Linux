@@ -104,13 +104,13 @@ string encoder::pack_header(string data_str)
 }
 
 
-void encoder::parse(const unsigned char * data)
+int encoder::parse(const unsigned char * data)
 {
     arr.clear();
 
 	if (*data == '\0')
 	{
-		return;
+		return -1;
 	}
 
 	key_value kv;
@@ -150,10 +150,17 @@ void encoder::parse(const unsigned char * data)
 		}
 		else
 		{
-			buf += *data;
+			buf.append(1,*data);
 		}
 
 		data++;
+		// if(buf.size()>400)///出现不明白的包
+		// {
+	
+		// 	return -1;
+		// }
+
+
 	}
 
 	if (*data == '\0' && *(data - 1) != '/') //末尾漏掉斜线/的情况
@@ -170,7 +177,12 @@ void encoder::parse(const unsigned char * data)
 DY_MESSAGE_TYPE encoder::get_rev_type(unsigned char * buf,const char * type)
 {
     DY_MESSAGE_TYPE ret;
-    parse(buf+8);//前8个字节是长度，不要
+	int ret_err;
+    ret_err = parse(buf+8);//前8个字节是长度，不要
+	if(ret_err == -1)
+	{
+		return UNKONW_TYPE;
+	}
     string value;
     value = fine_keyvalue(type);
      if(value == "chatmsg")

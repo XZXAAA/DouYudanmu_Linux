@@ -18,6 +18,8 @@
 typedef struct DOUYU_SOCKET
 {
     int fd;
+	unsigned char *buf;
+	int buflen;
     unsigned int con_timeout;
     unsigned int write_timeout;
     unsigned int rev_timeout;
@@ -44,7 +46,13 @@ int douyusockt_init(void **handle,unsigned con_timeout,unsigned write_timeout,un
     myDOUYU->con_timeout= con_timeout;
     myDOUYU->rev_timeout =rev_timeout;
     myDOUYU->write_timeout=write_timeout;
-
+	myDOUYU->buf=(unsigned char*)malloc(1024*15);
+	if(myDOUYU->buf== NULL)
+    {
+        ret = Sck_ErrMalloc;
+        return ret;
+    }
+	myDOUYU->buflen=1024*15;
     
 
     int fd = socket(AF_INET,SOCK_STREAM,0);
@@ -61,20 +69,40 @@ int douyusockt_init(void **handle,unsigned con_timeout,unsigned write_timeout,un
 }
 
 
+int douyusockt_destroy(void *handle)
+{
+	int ret;
+    if(handle == NULL)
+    {
+        ret = Sck_ErrParam;
+        return ret;
+    }
+    DOUYU_SOCKET * myDOUYU;
+    myDOUYU = (DOUYU_SOCKET *)handle;
+	if(myDOUYU->buf!= NULL)
+	{
+		free(myDOUYU->buf);
+		myDOUYU->buf=NULL;
+	}
+	if(handle!=NULL)
+	free(handle);
+
+	return ret;
+}
 /**
 *deactivate-nonblock-设置1/0为阻塞模式
 *@fd：文件播符符*/
 static int deactivate_nonblock(int fd)
 {
  int ret =0 ;
- int flags = fcntl(fd,F_GETFL);
+ int flags = fcntl(fd,F_GETFL);///获取内核中对应描述符的属性
  if(flags ==-1)
 	{
 		ret = flags;
 		printf("fcntl err \n");
 		return ret;
 	}
-	flags&=~O_NONBLOCK;
+	flags&=~O_NONBLOCK;  //不阻塞标志去除
 	ret=fcntl(fd,F_SETFL,flags);
 	if(ret ==-1)
 	{
@@ -97,7 +125,7 @@ static int activate_nonblock(int fd)
 		printf("fcntl err \n");
 		return ret;
 	}
-	flags|= O_NONBLOCK;
+	flags|= O_NONBLOCK;///设置非阻塞标志位
 	ret=fcntl(fd,F_SETFL,flags);
 	if(ret ==-1)
 	{
@@ -130,7 +158,7 @@ static int connect_tinmeout(int fd,struct sockaddr_in*addr,unsigned int wait_sec
 						{
 								//一但连接建立，则套接字就可写所以connect_fdset放在了写集合中
 								ret=select(fd+1,NULL,&connect_fdset,NULL,&timeout);
-						}while(ret<0&&errno==EINTR);
+						}while(ret<0&&errno==EINTR);//防止信号中断
 				
 						if(ret==0)
 					{
@@ -148,7 +176,7 @@ static int connect_tinmeout(int fd,struct sockaddr_in*addr,unsigned int wait_sec
 								int err;
 								socklen_t socklen = sizeof(err);
 								int sockoptret =getsockopt(fd,SOL_SOCKET,SO_ERROR,&err,&socklen);
-								if(sockoptret ==1)
+								if(sockoptret !=0 )
 								{
 								return -1;
 								}
@@ -159,7 +187,7 @@ static int connect_tinmeout(int fd,struct sockaddr_in*addr,unsigned int wait_sec
 								}
 								else
 								{
-								errno =err;
+								errno =err;  //把返回码传递
 								ret = -1;
                                 }	
 		}
@@ -419,6 +447,7 @@ int rev_from_douyu(void*handle, unsigned char* out,int* outlen)
 			ssize_t readed = 0;		
 			memset(out,0,*outlen);  //清空传来的buf
 			readed = readn(myDOUYU->fd,&datalen,4);  ///先把多少个数据读出来
+			printf("有 %d 个数据\t bufsize:%d \r\n",datalen,myDOUYU->buflen);
 			if(readed < 4)
 				{
 					printf("readn 4  errdd对方已经关闭\n");
@@ -426,15 +455,31 @@ int rev_from_douyu(void*handle, unsigned char* out,int* outlen)
 					return ret;
 				}
 			//datalen = ntohs(datalen);
+			// if(datalen>myDOUYU->buflen ) ///重新分配buf  有问题 重新分配的内存再parse解析的时候出现不知道的问题
+			// {
+				
+			// 	printf("buflen no enought\nbuflen no enought\nbuflen no enought\n");
+			// 	free(myDOUYU->buf);
+			// 	myDOUYU->buf =NULL;
+			// 	myDOUYU->buf=(unsigned char*)malloc(datalen);
+			// 		if(myDOUYU->buf== NULL)
+			// 		{
+			// 		ret = Sck_ErrMalloc;
+			// 		return ret;
+			// 		}
+			// 	myDOUYU->buflen =datalen;	
+			// }
+				
 			readed = readn(myDOUYU->fd,out,datalen); //把数据全部读出来
 			if(readed<datalen)
 			{
 					printf("readn 4 readn err\n");
 					return readed;  ///返回读了多少个
-			}		
+			}
+	
 			
 		}
-	if(ret <0 )
+	else if(ret <0 )
 		{
 			if(ret == -1 && errno == ETIMEDOUT)
 				{
@@ -477,9 +522,9 @@ int keep_heart(void*handle,long int usecond)   ///保持心跳
 	return	 ret;
 }
 
-
-int login_room(void * handle)
+int login_room(void * handle,int roomid)
 {
+
 	int ret;
     if(handle == NULL )
     {
@@ -489,7 +534,7 @@ int login_room(void * handle)
 
 	encoder enc;
 	enc.add_item("type", "loginreq");
-	//enc.add_item("roomid", 1126960);
+	enc.add_item("roomid", roomid);
 
 	int datalen;
 	string  str  = enc.get_result(&datalen);
@@ -540,13 +585,16 @@ int rev_data(void*handle, vector<key_value>& data,DY_MESSAGE_TYPE *type )
 {
     int datalen=0;
 	int ret=0;
-	unsigned char buf[1024];
+	unsigned char *buf;
     if(handle == NULL )
     {
         ret = Sck_ErrParam;  
-        return ret;
+        return UNKONW_TYPE;
     }
-	datalen = sizeof(buf);
+
+    DOUYU_SOCKET * myDOUYU = (DOUYU_SOCKET *)handle;
+	buf=myDOUYU->buf;
+//	datalen = sizeof(buf);
 
 	ret = rev_from_douyu(handle,buf,&datalen);
 	{
@@ -556,6 +604,14 @@ int rev_data(void*handle, vector<key_value>& data,DY_MESSAGE_TYPE *type )
 			return -1;
 		}
 	}
+	if(datalen >1000)
+	{
+		*type = UNKONW_TYPE;
+		return 0;
+	}
+		
+
+	//printf("读了%d个数据",datalen);
 	encoder enc;
 	*type = enc.get_rev_type(buf,"type");
 

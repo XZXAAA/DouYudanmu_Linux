@@ -9,7 +9,8 @@ using namespace std;
 typedef enum DY_MESSAGE_TYPE
 {
     MSG_TYPE_BARRAGE = 1,       //barrage
-    MSG_TYPE_LOGIN_RESPONSE = 2         //login response
+    MSG_TYPE_LOGIN_RESPONSE = 2 ,        //login response
+    UNKONW_TYPE =3
 }DY_MESSAGE_TYPE;
 
 struct key_value
@@ -38,7 +39,7 @@ string pack_header(string data_str);
 
 
 
-void parse(const unsigned char * data);
+int parse(const unsigned char * data);
 DY_MESSAGE_TYPE get_rev_type(unsigned char * buf ,const char * type);
 string fine_keyvalue(const char *key);
 

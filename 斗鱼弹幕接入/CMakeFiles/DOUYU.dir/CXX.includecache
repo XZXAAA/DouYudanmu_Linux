@@ -45,4 +45,6 @@ vector
 include/douyuAPI.h
 data.h
 include/data.h
+errno.h
+include/errno.h
 
