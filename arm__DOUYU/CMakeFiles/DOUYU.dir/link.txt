@@ -1,0 +1,1 @@
+/usr/local/arm/gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-g++    -pthread -g -rdynamic CMakeFiles/DOUYU.dir/src/data.cpp.o CMakeFiles/DOUYU.dir/src/douyuAPI.cpp.o CMakeFiles/DOUYU.dir/DOUYU.cpp.o  -o DOUYU 
